@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SplitEase — Dashboard</title>
+    <meta name="description"
+        content="Manage your shared expenses, view balances, and settle debts on the SplitEase dashboard." />
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+    <div class="bg-gradient"></div>
+
+    <div class="app-layout">
+        <!-- ───────── SIDEBAR ───────── -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">SplitEase</div>
+                <div class="sidebar-user" id="sidebarUser">Welcome</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-title">Menu</div>
+                <div class="nav-item active" id="navDashboard" onclick="showView('dashboard')">
+                    <span class="nav-icon">📊</span> Dashboard
+                </div>
+                <div class="nav-item" id="navGroups" onclick="showView('groups')">
+                    <span class="nav-icon">👥</span> Groups
+                    <span class="badge" id="groupCount">0</span>
+                </div>
+                <div class="nav-item" id="navSettlements" onclick="showView('settlements')">
+                    <span class="nav-icon">💰</span> Settlements
+                </div>
+
+                <div class="sidebar-section-title mt-24">Your Groups</div>
+                <div id="sidebarGroupList"></div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="handleLogout()">⏻ &nbsp;Log Out</button>
+            </div>
+        </aside>
+
+        <!-- ───────── MAIN ───────── -->
+        <main class="main-content">
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+
+            <!-- ===== DASHBOARD VIEW ===== -->
+            <div class="view-panel active" id="viewDashboard">
+                <div class="main-header">
+                    <div>
+                        <h1 class="main-title">Dashboard</h1>
+                        <p class="main-title-sub">Your expense overview at a glance</p>
+                    </div>
+                </div>
+
+                <div class="balance-grid">
+                    <div class="balance-card glass float-card">
+                        <span class="balance-icon">⚖️</span>
+                        <div class="balance-label">Total Balance</div>
+                        <div class="balance-amount" id="totalBalance">$0.00</div>
+                    </div>
+                    <div class="balance-card glass float-card">
+                        <span class="balance-icon">📤</span>
+                        <div class="balance-label">You Owe</div>
+                        <div class="balance-amount balance-negative" id="youOwe">$0.00</div>
+                    </div>
+                    <div class="balance-card glass float-card">
+                        <span class="balance-icon">📥</span>
+                        <div class="balance-label">You Are Owed</div>
+                        <div class="balance-amount balance-positive" id="youAreOwed">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <h2>Recent Expenses</h2>
+                </div>
+                <div class="expense-list" id="recentExpenses">
+                    <div class="empty-state">
+                        <div class="empty-icon">📄</div>
+                        <p>No expenses yet. Create a group and add your first expense!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== GROUPS VIEW ===== -->
+            <div class="view-panel" id="viewGroups">
+                <div class="main-header">
+                    <div>
+                        <h1 class="main-title">Groups</h1>
+                        <p class="main-title-sub">Manage your expense groups</p>
+                    </div>
+                    <button class="btn btn-primary" style="width:auto;" onclick="openModal('createGroupModal')">+ New
+                        Group</button>
+                </div>
+                <div class="group-grid" id="groupGrid">
+                    <div class="empty-state">
+                        <div class="empty-icon">👥</div>
+                        <p>No groups yet. Create one to start splitting expenses!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== GROUP DETAIL VIEW ===== -->
+            <div class="view-panel" id="viewGroupDetail">
+                <div class="group-detail-header">
+                    <button class="back-btn" onclick="showView('groups')">← Back</button>
+                    <div>
+                        <h1 class="main-title" id="groupDetailName">Group</h1>
+                    </div>
+                    <button class="btn btn-primary" style="width:auto; margin-left:auto;"
+                        onclick="openAddExpenseModal()">+ Add Expense</button>
+                </div>
+
+                <div class="members-list" id="groupDetailMembers"></div>
+
+                <!-- Tabs: Expenses | Balances -->
+                <div class="detail-tabs">
+                    <button class="detail-tab active" onclick="switchDetailTab('expenses')">Expenses</button>
+                    <button class="detail-tab" onclick="switchDetailTab('balances')">Balances</button>
+                </div>
+
+                <div class="detail-panel active" id="detailExpenses">
+                    <div class="expense-list" id="groupExpenseList"></div>
+                </div>
+
+                <div class="detail-panel" id="detailBalances">
+                    <div class="settlement-list" id="groupBalanceList"></div>
+                </div>
+            </div>
+
+            <!-- ===== SETTLEMENTS VIEW ===== -->
+            <div class="view-panel" id="viewSettlements">
+                <div class="main-header">
+                    <div>
+                        <h1 class="main-title">Settlements</h1>
+                        <p class="main-title-sub">Outstanding debts across all groups</p>
+                    </div>
+                    <button class="btn btn-danger" style="width:auto;" onclick="settleAll()">Settle All</button>
+                </div>
+                <div class="settlement-list" id="globalSettlementList">
+                    <div class="empty-state">
+                        <div class="empty-icon">✅</div>
+                        <p>All settled up! No outstanding balances.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ───────── MODALS ───────── -->
+
+    <!-- Create Group Modal -->
+    <div class="modal-overlay" id="createGroupModal">
+        <div class="modal glass">
+            <div class="modal-title">Create New Group</div>
+            <form onsubmit="handleCreateGroup(event)">
+                <div class="form-group">
+                    <label for="groupNameInput">Group Name</label>
+                    <input type="text" id="groupNameInput" placeholder="e.g. Weekend Trip" required />
+                </div>
+                <div class="form-group">
+                    <label>Members</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="memberNameInput" placeholder="Add member name" />
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="addMemberChip()">Add</button>
+                    </div>
+                    <div class="chips-container" id="memberChips"></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('createGroupModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div class="modal-overlay" id="addExpenseModal">
+        <div class="modal glass">
+            <div class="modal-title">Add Expense</div>
+            <form onsubmit="handleAddExpense(event)">
+                <div class="form-group">
+                    <label for="expenseDesc">Description</label>
+                    <input type="text" id="expenseDesc" placeholder="e.g. Dinner at restaurant" required />
+                </div>
+                <div class="form-group">
+                    <label for="expenseAmount">Amount ($)</label>
+                    <input type="number" id="expenseAmount" step="0.01" min="0.01" placeholder="0.00" required />
+                </div>
+                <div class="form-group">
+                    <label for="expensePaidBy">Paid By</label>
+                    <select id="expensePaidBy" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Split Among</label>
+                    <div class="split-members" id="splitMembersList"></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('addExpenseModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
